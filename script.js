@@ -1,8 +1,29 @@
+const firebaseConfig = {
+    apiKey: "AIzaSyAcINU2KIYxsV2WZVTTaZ3tnIXESVOSsWQ",
+    authDomain: "dsplayz.firebaseapp.com",
+    databaseURL: "https://dsplayz-default-rtdb.firebaseio.com/",
+    projectId: "dsplayz",
+    storageBucket: "dsplayz.appspot.com",
+    messagingSenderId: "565599758200",
+    appId: "1:565599758200:web:4f09f33c2565b5d2528a8d",
+};
+
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig);
+
+// Reference to the Realtime Database
+const database = firebase.database();
+
 document.addEventListener("DOMContentLoaded", function () {
     const redeemBtn = document.getElementById('redeemBtn');
     const message = document.getElementById('message');
     const prizeDisplay = document.getElementById('prize');
-    const GIST_ID = "063e86c807635b4c391c7df541ea8357"; // Replace with your Gist ID
+
+    const validCodes = {
+        "1221": "20 Robux",
+        "12345": "50 Robux"
+        // Add more codes and prizes as needed
+    };
 
     redeemBtn.addEventListener("click", async function () {
         const scInput = document.getElementById('scInput').value;
@@ -12,16 +33,13 @@ document.addEventListener("DOMContentLoaded", function () {
             clearPrize();
         } else if (validCodes.hasOwnProperty(scInput)) {
             try {
-                const gistData = await getGistData(GIST_ID);
-                const redemptionStatus = JSON.parse(gistData.files["redeemedCodes.json"].content);
+                const redemptionStatus = await checkCodeRedemption(scInput);
 
-                if (isCodeRedeemed(redemptionStatus, scInput)) {
+                if (redemptionStatus) {
                     setMessage("Code has already been redeemed.", "red");
                     clearPrize();
                 } else {
-                    redemptionStatus[scInput] = true;
-                    await updateGistData(GIST_ID, JSON.stringify(redemptionStatus));
-
+                    await redeemCode(scInput);
                     setMessage(`Code redeemed successfully! You've got ${validCodes[scInput]}`, "green");
                 }
             } catch (error) {
@@ -34,18 +52,13 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    async function getGistData(gistId) {
-        const response = await fetch(`https://api.github.com/gists/${gistId}`);
-        return await response.json();
+    async function checkCodeRedemption(code) {
+        const snapshot = await database.ref('redeemedCodes').child(code).once('value');
+        return snapshot.val() === true;
     }
 
-    async function updateGistData(gistId, content) {
-        const response = await fetch(`https://api.github.com/gists/${gistId}`, {
-            method: 'PATCH',
-            body: JSON.stringify({ files: { "redeemedCodes.json": { content } } })
-        });
-
-        return response.status === 200;
+    async function redeemCode(code) {
+        await database.ref('redeemedCodes').child(code).set(true);
     }
 
     function setMessage(text, color) {
@@ -56,14 +69,4 @@ document.addEventListener("DOMContentLoaded", function () {
     function clearPrize() {
         prizeDisplay.textContent = "";
     }
-
-    function isCodeRedeemed(redemptionStatus, code) {
-        return redemptionStatus.hasOwnProperty(code) && redemptionStatus[code] === true;
-    }
-
-    const validCodes = {
-        "1221": "20 Robux",
-        "12345": "50 Robux"
-        // Add more codes and prizes as needed
-    };
 });
