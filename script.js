@@ -1,22 +1,14 @@
 document.addEventListener("DOMContentLoaded", function () {
-    var redeemBtn = document.getElementById('redeemBtn');
-    var message = document.getElementById('message');
-    var prizeDisplay = document.getElementById('prize');
-
-    var validCodes = {
-        "1221": "20 Robux",
-        "12345": "Surprise 2"
-        // Add more codes and prizes as needed
-    };
-
+    const redeemBtn = document.getElementById('redeemBtn');
+    const message = document.getElementById('message');
+    const prizeDisplay = document.getElementById('prize');
     const GIST_ID = "063e86c807635b4c391c7df541ea8357"; // Replace with your Gist ID
 
     redeemBtn.addEventListener("click", async function () {
-        var scInput = document.getElementById('scInput').value;
-        var passwordInput = document.getElementById('passwordInput').value;
+        const scInput = document.getElementById('scInput').value;
 
-        if (!scInput || !passwordInput) {
-            setMessage("Please fill in the required fields", "red");
+        if (!scInput) {
+            setMessage("Please enter a code.", "red");
             clearPrize();
         } else if (validCodes.hasOwnProperty(scInput)) {
             try {
@@ -68,4 +60,10 @@ document.addEventListener("DOMContentLoaded", function () {
     function isCodeRedeemed(redemptionStatus, code) {
         return redemptionStatus.hasOwnProperty(code) && redemptionStatus[code] === true;
     }
+
+    const validCodes = {
+        "1221": "20 Robux",
+        "12345": "50 Robux"
+        // Add more codes and prizes as needed
+    };
 });
